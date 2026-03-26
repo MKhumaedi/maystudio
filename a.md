@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Modern Startup Website
 
 ![Showcase Image](https://i.ibb.co/2y7hTzr/Screenshot-2024-05-19-232554.png)
@@ -57,3 +58,6 @@ By default, the web application runs on `http://localhost:5173`
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+=======
+# maystudio
+
