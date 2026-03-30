@@ -5,7 +5,7 @@ import { background, openai } from "../assets";
 import Button from "./Button";
 import MenuSvg from "../assets/svg/MenuSvg";
 import { useState } from "react";
-import maystudio from "../assets/maystudiop.svg";
+
 
 
 const navigation = [
