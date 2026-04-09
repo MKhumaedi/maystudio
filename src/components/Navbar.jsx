@@ -3,8 +3,10 @@ import { disablePageScroll, enablePageScroll } from "scroll-lock";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
+import Backendless from "../lib/backendless";
+
 import Button from "./Button";
-import MenuSvg from "../assets/svg/MenuSvg.jsx"; // ✅ FIX
+import MenuSvg from "../assets/svg/MenuSvg.jsx";
 import AuthModal from "./AuthModal";
 
 const navigation = [
@@ -25,16 +27,45 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [openProfile, setOpenProfile] = useState(false);
 
+  // 🔥 FIX: gunakan Backendless (bukan localStorage)
   useEffect(() => {
-    const loadUser = () => {
-      const data = localStorage.getItem("user");
-      setUser(data ? JSON.parse(data) : null);
+    const loadUser = async () => {
+      try {
+        const currentUser = await Backendless.UserService.getCurrentUser();
+        setUser(currentUser || null);
+      } catch {
+        setUser(null);
+      }
     };
 
     loadUser();
-    window.addEventListener("storage", loadUser);
-    return () => window.removeEventListener("storage", loadUser);
+
+    const handleStorage = () => {
+      loadUser();
+    };
+
+    window.addEventListener("storage", handleStorage);
+
+    return () => window.removeEventListener("storage", handleStorage);
   }, []);
+
+  // 🔥 LOGOUT FIX FINAL
+  const handleLogout = async () => {
+    try {
+      await Backendless.UserService.logout();
+
+      localStorage.removeItem("user"); // optional (biar clean)
+
+      window.dispatchEvent(new Event("storage"));
+
+      setUser(null);
+      setOpenProfile(false);
+
+      navigate("/");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   const toggleNavigation = () => {
     if (openNavigation) {
@@ -81,7 +112,7 @@ const Navbar = () => {
                       user?.profileImage ||
                       `https://ui-avatars.com/api/?name=${user?.name || "User"}`
                     }
-                    alt="profile" // ✅ FIX
+                    alt="profile"
                     className="w-8 h-8 rounded-full"
                   />
                   <span className="hidden sm:block text-sm">
@@ -106,11 +137,7 @@ const Navbar = () => {
                     </button>
 
                     <button
-                      onClick={() => {
-                        localStorage.removeItem("user");
-                        window.dispatchEvent(new Event("storage"));
-                        navigate("/");
-                      }}
+                      onClick={handleLogout}
                       className="w-full px-4 py-2 text-left text-red-400 hover:bg-white/10"
                     >
                       Logout
@@ -191,12 +218,9 @@ const Navbar = () => {
                 <button onClick={() => navigate("/settings")}>
                   Settings
                 </button>
+
                 <button
-                  onClick={() => {
-                    localStorage.removeItem("user");
-                    window.dispatchEvent(new Event("storage"));
-                    navigate("/");
-                  }}
+                  onClick={handleLogout}
                   className="text-red-400"
                 >
                   Logout

@@ -1,4 +1,5 @@
 import { useLocation } from "react-router-dom";
+
 import Benefits from "./sections/Benefits";
 import Collaboration from "./sections/Collaboration";
 import Footer from "./components/Footer";
@@ -11,7 +12,7 @@ import About from "./sections/About";
 import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import Templates from "./sections/Templates";
-
+import AdminPage from "./pages/AdminPage";
 import { Toaster } from "react-hot-toast";
 
 function App() {
@@ -31,6 +32,8 @@ function App() {
           <Settings />
         ) : path === "/templates" ? (
           <Templates />
+        ) : path === "/admin" ? (
+          <AdminPage /> // ✅ ADMIN ROUTE
         ) : (
           <>
             <Hero />

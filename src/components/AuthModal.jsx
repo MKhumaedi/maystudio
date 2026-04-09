@@ -11,8 +11,9 @@ export default function AuthModal({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // 🔥 RESET FORM SAAT CLOSE
+  // 🔥 RESET FORM
   useEffect(() => {
     if (!isOpen) {
       setName("");
@@ -23,34 +24,53 @@ export default function AuthModal({
 
   if (!isOpen) return null;
 
-  // ✅ LOGIN
+  // ================= LOGIN =================
   const handleLogin = async () => {
     try {
       if (!email || !password) {
         return toast.error("Email & Password wajib diisi");
       }
 
-      await Backendless.UserService.login(email, password, true);
+      setLoading(true);
 
-      const currentUser = await Backendless.UserService.getCurrentUser();
+      // 🔥 LOGIN
+      const user = await Backendless.UserService.login(
+        email,
+        password,
+        true
+      );
 
-      localStorage.setItem("user", JSON.stringify(currentUser));
+      // 🔥 SIMPAN USER
+      localStorage.setItem("user", JSON.stringify(user));
       window.dispatchEvent(new Event("storage"));
 
       toast.success("Login berhasil 🚀");
       onClose();
     } catch (err) {
-      console.error(err);
-      toast.error(err.message);
+      console.error("LOGIN ERROR:", err);
+
+      // 🔥 HANDLE ERROR SESSION
+      if (
+        err.message.includes("multiple concurrent logins") ||
+        err.message.includes("User already logged in")
+      ) {
+        toast.error("User sudah login di device lain ❌");
+      } else {
+        toast.error(err.message);
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
-  // ✅ REGISTER + ROLE MEMBER
+  // ================= REGISTER =================
   const handleRegister = async () => {
     try {
       if (!name || !email || !password) {
         return toast.error("Semua field wajib diisi");
       }
+
+      setLoading(true);
 
       const user = new Backendless.User();
 
@@ -58,24 +78,28 @@ export default function AuthModal({
       user.email = email;
       user.password = password;
 
-      // 🔥 WAJIB → ROLE DEFAULT
-      user.role = "Member";
+      // 🔥 FIX: role harus lowercase
+      user.role = "member";
 
       await Backendless.UserService.register(user);
 
       // 🔥 AUTO LOGIN
-      await Backendless.UserService.login(email, password, true);
+      const loggedInUser = await Backendless.UserService.login(
+        email,
+        password,
+        true
+      );
 
-      const currentUser = await Backendless.UserService.getCurrentUser();
-
-      localStorage.setItem("user", JSON.stringify(currentUser));
+      localStorage.setItem("user", JSON.stringify(loggedInUser));
       window.dispatchEvent(new Event("storage"));
 
       toast.success("Register berhasil 🎉");
       onClose();
     } catch (err) {
-      console.error(err);
+      console.error("REGISTER ERROR:", err);
       toast.error(err.message);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -123,9 +147,14 @@ export default function AuthModal({
 
         <button
           onClick={type === "login" ? handleLogin : handleRegister}
+          disabled={loading}
           className="w-full mt-5 py-3 bg-purple-500 hover:bg-purple-600 text-white rounded"
         >
-          {type === "login" ? "Login" : "Register"}
+          {loading
+            ? "Loading..."
+            : type === "login"
+            ? "Login"
+            : "Register"}
         </button>
 
         <p className="text-center text-sm text-white/50 mt-4">

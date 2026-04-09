@@ -12,8 +12,10 @@
     "dependencies": {
         "backendless": "^8.0.0",
         "framer-motion": "^12.38.0",
+        "lucide-react": "^1.7.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-easy-crop": "^5.5.7",
         "react-hot-toast": "^2.6.0",
         "react-just-parallax": "^3.1.16",
         "react-router-dom": "^6.22.1",
