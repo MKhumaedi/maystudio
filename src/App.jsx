@@ -1,5 +1,4 @@
 import { useLocation } from "react-router-dom";
-
 import Benefits from "./sections/Benefits";
 import Collaboration from "./sections/Collaboration";
 import Footer from "./components/Footer";
@@ -9,14 +8,13 @@ import Pricing from "./sections/Pricing";
 import Roadmap from "./sections/Roadmap";
 import Services from "./sections/Services";
 import About from "./sections/About";
-
 import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import Templates from "./sections/Templates";
 
 import { Toaster } from "react-hot-toast";
 
-const App = () => {
+function App() {
   const location = useLocation();
   const path = location.pathname;
 
@@ -36,12 +34,12 @@ const App = () => {
         ) : (
           <>
             <Hero />
-            <About />
             <Benefits />
             <Collaboration />
             <Services />
             <Pricing />
             <Roadmap />
+            <About />
           </>
         )}
 
@@ -49,6 +47,6 @@ const App = () => {
       </div>
     </>
   );
-};
+}
 
 export default App;
