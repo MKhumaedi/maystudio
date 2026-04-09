@@ -4,9 +4,9 @@ import { discordBlack } from "../assets";
 
 const socials = [
   {
-    title: "Discord",
+    title: "GitHub",
     iconUrl: discordBlack,
-    url: "#",
+    url: "https://github.com/MKhumaedi/maystudio",
   },
 ];
 

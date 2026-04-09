@@ -109,7 +109,7 @@ const Roadmap = () => (
 
       {/* CTA */}
       <div className="flex justify-center mt-12">
-        <Button href="#contact">
+        <Button href="https://wa.me/6283120479594">
           Mulai Konsultasi
         </Button>
       </div>

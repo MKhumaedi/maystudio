@@ -71,7 +71,7 @@ const Hero = () => {
             yang siap meningkatkan kepercayaan pelanggan dan penjualan bisnis Anda.
           </p>
 
-          <Button href="#contact" white>
+          <Button href="https://profile-edi.vercel.app/" white>
             Konsultasi Gratis
           </Button>
 

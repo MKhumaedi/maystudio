@@ -92,7 +92,7 @@ const Pricing = () => {
                 {/* Button */}
                 <Button
                   className="w-full mb-6"
-                  href={item.price ? "#contact" : "https://wa.me/628xxxxxxxxxx"}
+                  href={item.price ? "#contact" : "https://wa.me/6283120479594"}
                   white
                 >
                   {item.price ? "Pesan Sekarang" : "Konsultasi"}
@@ -123,7 +123,7 @@ const Pricing = () => {
 
         {/* CTA bawah */}
         <div className="flex justify-center mt-10">
-          <a className="text-xs font-code font-bold tracking-wider uppercase border-b text-white/60 hover:text-white transition" href="#contact">
+          <a className="text-xs font-code font-bold tracking-wider uppercase border-b text-white/60 hover:text-white transition" href="https://wa.me/6283120479594">
             Butuh paket custom? Hubungi kami sekarang
           </a>
         </div>

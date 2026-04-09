@@ -57,7 +57,7 @@ const Collaboration = () => {
             ))}
           </ul>
 
-          <Button href="#contact">
+          <Button href="https://wa.me/6283120479594">
             Konsultasi Sekarang
           </Button>
         </div>
