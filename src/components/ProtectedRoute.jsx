@@ -1,32 +1,46 @@
-import { Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Backendless from "../lib/backendless";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, role }) {
   const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const check = async () => {
+    const checkAccess = async () => {
       try {
         const user = await Backendless.UserService.getCurrentUser();
 
-        if (user?.role === "admin") {
-          setAllowed(true);
+        // ❌ BELUM LOGIN
+        if (!user) {
+          navigate("/");
+          return;
         }
+
+        // ❌ ROLE TIDAK SESUAI
+        if (role && user.role?.toLowerCase() !== role.toLowerCase()) {
+          navigate("/");
+          return;
+        }
+
       } catch (err) {
         console.error(err);
+        navigate("/");
       } finally {
         setLoading(false);
       }
     };
 
-    check();
-  }, []);
+    checkAccess();
+  }, [navigate, role]);
 
-  if (loading) return <div className="text-white p-10">Loading...</div>;
-
-  if (!allowed) return <Navigate to="/" />;
+  if (loading) {
+    return (
+      <div className="text-white p-10">
+        Checking access...
+      </div>
+    );
+  }
 
   return children;
 }

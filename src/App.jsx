@@ -13,32 +13,29 @@ import Profile from "./components/Profile";
 import Settings from "./components/Settings";
 import Templates from "./sections/Templates";
 import AdminPage from "./pages/AdminPage";
+
 import { Toaster } from "react-hot-toast";
 
 function App() {
   const location = useLocation();
   const path = location.pathname;
 
-  // 🔥 DETECT ADMIN PAGE
-  const isAdminPage = path === "/admin";
-
-  // 🔥 ADMIN PAGE (NO NAVBAR, NO FOOTER)
-  if (isAdminPage) {
-    return (
-      <>
-        <Toaster position="top-right" />
-        <AdminPage />
-        <Footer />
-      </>
-    );
-  }
+  const isAdminPage = path.startsWith("/admin");
 
   return (
     <>
       <Toaster position="top-right" />
 
-      <div className="pt-[4.75rem] lg:pt-[5.25rem] overflow-hidden">
-        <Navbar />
+      {/* ✅ FIX DISINI */}
+      <div
+        className={`overflow-hidden ${
+          isAdminPage
+            ? "" // ❌ TANPA PADDING
+            : "pt-[4.75rem] lg:pt-[5.25rem]" // ✅ PUBLIC PAGE
+        }`}
+      >
+
+        {!isAdminPage && <Navbar />}
 
         {path === "/profile" ? (
           <Profile />
@@ -46,6 +43,8 @@ function App() {
           <Settings />
         ) : path === "/templates" ? (
           <Templates />
+        ) : path === "/admin" ? (
+          <AdminPage />
         ) : (
           <>
             <Hero />
@@ -58,7 +57,7 @@ function App() {
           </>
         )}
 
-        <Footer />
+        {!isAdminPage && <Footer />}
       </div>
     </>
   );

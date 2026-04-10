@@ -21,27 +21,17 @@ export default function AdminHeader() {
     loadUser();
   }, []);
 
-  // 🔥 CLICK OUTSIDE (FIX)
+  // 🔥 CLOSE DROPDOWN SAAT CLICK LUAR
   useEffect(() => {
-    const handleClickOutside = () => {
-      setOpen(false);
-    };
-
+    const handleClickOutside = () => setOpen(false);
     window.addEventListener("click", handleClickOutside);
-
-    return () => {
-      window.removeEventListener("click", handleClickOutside);
-    };
+    return () => window.removeEventListener("click", handleClickOutside);
   }, []);
 
   // 🔥 LOGOUT
   const handleLogout = async () => {
-    try {
-      await Backendless.UserService.logout();
-      navigate("/");
-    } catch (err) {
-      console.error(err);
-    }
+    await Backendless.UserService.logout();
+    navigate("/");
   };
 
   if (!user) return null;
@@ -49,70 +39,59 @@ export default function AdminHeader() {
   return (
     <div className="flex justify-end items-center mb-6 relative">
 
-      {/* 🔥 AVATAR */}
+      {/* USER */}
       <div
         onClick={(e) => {
-          e.stopPropagation(); // ✅ FIX BUG
+          e.stopPropagation();
           setOpen(!open);
         }}
-        className="flex items-center gap-2 cursor-pointer"
+        className="flex items-center gap-3 cursor-pointer"
       >
-        <img
-          src={`https://ui-avatars.com/api/?name=${user?.email || "User"}`}
-          className="w-8 h-8 rounded-full"
-        />
-        <span className="text-sm">{user?.email}</span>
+        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm">
+          {user.email?.charAt(0).toUpperCase()}
+        </div>
+
+        <span className="text-sm">{user.email}</span>
       </div>
 
-      {/* 🔥 DROPDOWN */}
+      {/* DROPDOWN */}
       {open && (
         <div
-          onClick={(e) => e.stopPropagation()} // ✅ FIX BUG
-          className="absolute right-0 top-12 w-44 bg-[#0f0f1a] border border-white/10 rounded-lg overflow-hidden shadow-lg z-50"
+          onClick={(e) => e.stopPropagation()}
+          className="absolute right-0 top-12 w-48 bg-[#0f0f1a] border border-white/10 rounded-xl shadow-lg p-2 z-50"
         >
 
-          {/* PROFILE */}
           <button
-            onClick={() => {
-              navigate("/profile");
-              setOpen(false);
-            }}
-            className="w-full px-4 py-2 text-left hover:bg-white/10"
+            onClick={() => navigate("/profile")}
+            className="block w-full text-left px-4 py-2 hover:bg-white/5 rounded-lg"
           >
             Profile
           </button>
 
-          {/* SETTINGS */}
           <button
-            onClick={() => {
-              navigate("/settings");
-              setOpen(false);
-            }}
-            className="w-full px-4 py-2 text-left hover:bg-white/10"
+            onClick={() => navigate("/settings")}
+            className="block w-full text-left px-4 py-2 hover:bg-white/5 rounded-lg"
           >
             Settings
           </button>
 
-          {/* PUBLIC WEBSITE */}
-          <button
-            onClick={() => {
-              navigate("/");
-              setOpen(false);
-            }}
-            className="w-full px-4 py-2 text-left hover:bg-white/10 text-blue-400"
-          >
-            View Website
-          </button>
+          {/* 🔥 ONLY ADMIN */}
+          {user?.role?.toLowerCase() === "admin" && (
+            <button
+              onClick={() => navigate("./")}
+              className="block w-full text-left px-4 py-2 hover:bg-white/5 rounded-lg"
+            >
+              View Website
+            </button>
+          )}
 
-          <div className="border-t border-white/10" />
-
-          {/* LOGOUT */}
           <button
             onClick={handleLogout}
-            className="w-full px-4 py-2 text-left text-red-400 hover:bg-white/10"
+            className="block w-full text-left px-4 py-2 text-red-400 hover:bg-white/5 rounded-lg"
           >
             Logout
           </button>
+
         </div>
       )}
     </div>
