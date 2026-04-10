@@ -17,6 +17,9 @@ export default function Templates() {
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
 
+  // 🔥 MODAL CONTROL (FIX UTAMA)
+  const [openModal, setOpenModal] = useState(false);
+
   // 🔥 EDIT STATE
   const [editingId, setEditingId] = useState(null);
   const [editData, setEditData] = useState({
@@ -51,7 +54,7 @@ export default function Templates() {
   // 🔥 LOAD TEMPLATE
   const loadTemplates = useCallback(async () => {
     try {
-      const data = await Backendless.Data.of("templates").find();
+      const data = await Backendless.Data.of("Templates").find();
 
       if (data && data.length > 0) {
         setTemplates(data.reverse());
@@ -93,7 +96,7 @@ export default function Templates() {
     if (!confirm("Yakin mau delete template ini?")) return;
 
     try {
-      await Backendless.Data.of("templates").remove(id);
+      await Backendless.Data.of("Templates").remove({ objectId: id });
       alert("Deleted ✅");
       loadTemplates();
     } catch (err) {
@@ -114,7 +117,7 @@ export default function Templates() {
   // 🔥 UPDATE
   const handleUpdate = async (item) => {
     try {
-      await Backendless.Data.of("templates").save({
+      await Backendless.Data.of("Templates").save({
         objectId: item.objectId,
         title: editData.title,
         category: editData.category,
@@ -183,10 +186,17 @@ export default function Templates() {
         ))}
       </div>
 
-      {/* ADMIN */}
-      {user && user.role?.toLowerCase() === "admin" && (
-        <UploadTemplate onSuccess={loadTemplates} />
-      )}
+      {/* 🔥 ADMIN BUTTON (FIX) */}
+      {/* {user && user.role?.toLowerCase() === "admin" && (
+        <div className="flex justify-center mb-10">
+          <button
+            onClick={() => setOpenModal(true)}
+            className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-sm"
+          >
+            + Add Template
+          </button>
+        </div>
+      )} */}
 
       {/* GRID */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -210,7 +220,6 @@ export default function Templates() {
             {/* CONTENT */}
             <div className="p-4 flex justify-between items-center">
               
-              {/* EDIT MODE */}
               {editingId === item.objectId ? (
                 <div className="flex flex-col gap-2 w-full">
                   <input
@@ -258,13 +267,25 @@ export default function Templates() {
                     onDelete={() => handleDelete(item.objectId)}
                   />
                 )}
-
               </div>
 
             </div>
           </motion.div>
         ))}
       </div>
+
+      {/* 🔥 MODAL (FIX UTAMA) */}
+      {user &&
+        user.role?.toLowerCase() === "admin" &&
+        openModal && (
+          <UploadTemplate
+            onClose={() => setOpenModal(false)}
+            onSuccess={() => {
+              loadTemplates();
+              setOpenModal(false);
+            }}
+          />
+        )}
     </section>
   );
 }

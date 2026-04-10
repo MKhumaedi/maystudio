@@ -19,6 +19,20 @@ function App() {
   const location = useLocation();
   const path = location.pathname;
 
+  // 🔥 DETECT ADMIN PAGE
+  const isAdminPage = path === "/admin";
+
+  // 🔥 ADMIN PAGE (NO NAVBAR, NO FOOTER)
+  if (isAdminPage) {
+    return (
+      <>
+        <Toaster position="top-right" />
+        <AdminPage />
+        <Footer />
+      </>
+    );
+  }
+
   return (
     <>
       <Toaster position="top-right" />
@@ -32,8 +46,6 @@ function App() {
           <Settings />
         ) : path === "/templates" ? (
           <Templates />
-        ) : path === "/admin" ? (
-          <AdminPage /> // ✅ ADMIN ROUTE
         ) : (
           <>
             <Hero />

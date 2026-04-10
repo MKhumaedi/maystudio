@@ -1,21 +1,20 @@
 import { useState, useCallback } from "react";
-import Backendless from "../lib/backendless";
+import Backendless from "../../lib/backendless";
 import Cropper from "react-easy-crop";
 
-export default function UploadTemplateModal({ onClose, onSuccess }) {
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("Draft");
+export default function EditTemplateModal({ data, onClose, onSuccess }) {
+  const [name, setName] = useState(data.name || "");
+  const [category, setCategory] = useState(data.category || "");
+  const [status, setStatus] = useState(data.status || "Draft");
 
   const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [preview, setPreview] = useState(data.image);
 
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1.4);
   const [rotation, setRotation] = useState(0);
 
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
-
   const [loading, setLoading] = useState(false);
 
   // 📥 FILE
@@ -25,18 +24,20 @@ export default function UploadTemplateModal({ onClose, onSuccess }) {
     setPreview(URL.createObjectURL(file));
   };
 
-  // 📐 CROP COMPLETE
+  // 📐 CROP
   const onCropComplete = useCallback((_, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
-  // ✂️ CROP IMAGE
+  // ✂️ GET CROPPED IMAGE
   const getCroppedImage = async () => {
-    const imageEl = new Image();
-    imageEl.src = preview;
+    if (!image) return null;
+
+    const img = new Image();
+    img.src = preview;
 
     await new Promise((resolve) => {
-      imageEl.onload = resolve;
+      img.onload = resolve;
     });
 
     const canvas = document.createElement("canvas");
@@ -55,7 +56,7 @@ export default function UploadTemplateModal({ onClose, onSuccess }) {
     ctx.translate(-width / 2, -height / 2);
 
     ctx.drawImage(
-      imageEl,
+      img,
       croppedAreaPixels.x,
       croppedAreaPixels.y,
       width,
@@ -74,80 +75,83 @@ export default function UploadTemplateModal({ onClose, onSuccess }) {
     });
   };
 
-  // 🚀 SUBMIT
-  const handleSubmit = async () => {
-    if (!name || !image) return alert("Lengkapi data");
-
+  // 🚀 UPDATE
+  const handleUpdate = async () => {
     setLoading(true);
 
     try {
-      const croppedFile = await getCroppedImage();
+      let imageUrl = data.image;
 
-      const fileName = Date.now() + "-" + croppedFile.name;
+      if (image && croppedAreaPixels) {
+        const croppedFile = await getCroppedImage();
 
-      const uploaded = await Backendless.Files.upload(
-        croppedFile,
-        "templates",
-        true,
-        fileName
-      );
+        const fileName = Date.now() + "-" + croppedFile.name;
 
-      const imageUrl = uploaded.fileURL;
+        const uploaded = await Backendless.Files.upload(
+          croppedFile,
+          "templates",
+          true,
+          fileName
+        );
+
+        imageUrl = uploaded.fileURL;
+      }
 
       await Backendless.Data.of("Templates").save({
+        objectId: data.objectId,
         name,
         category,
         status,
         image: imageUrl,
-        created: new Date(),
       });
 
       onSuccess();
       onClose();
+
+      window.dispatchEvent(new Event("templateUpdated"));
     } catch (err) {
       console.error(err);
-      alert("Upload gagal");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+      <div className="w-full max-w-md bg-[#0f0f1a] rounded-2xl p-6 border border-white/10">
 
-      <div className="w-full max-w-md bg-gradient-to-b from-[#0f0f1a] to-[#0b0b15] border border-white/10 rounded-2xl p-6 shadow-2xl">
-
-        <h2 className="text-xl font-semibold mb-6">Add Template</h2>
+        <h2 className="text-xl mb-6">Edit Template</h2>
 
         <div className="space-y-4">
 
+          {/* NAME */}
           <input
-            placeholder="Template name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-purple-500 outline-none"
+            className="w-full px-4 py-3 bg-white/5 rounded-lg border border-white/10"
           />
 
+          {/* CATEGORY */}
           <input
-            placeholder="Category (e.g. Landing, SaaS)"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 focus:border-purple-500 outline-none"
+            className="w-full px-4 py-3 bg-white/5 rounded-lg border border-white/10"
           />
 
+          {/* STATUS */}
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10"
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-lg"
           >
             <option>Draft</option>
             <option>Published</option>
           </select>
 
           {/* FILE */}
-          <label className="flex items-center justify-between px-4 py-3 bg-white/5 border border-dashed border-white/10 rounded-lg cursor-pointer hover:border-purple-500">
+          <label className="flex items-center justify-between px-4 py-3 bg-white/5 border border-dashed border-white/10 rounded-lg cursor-pointer">
             <span className="text-sm text-white/60 truncate">
-              {image ? image.name : "Upload template preview"}
+              {image ? image.name : "Change image"}
             </span>
 
             <span className="text-xs bg-purple-500 px-3 py-1 rounded-md">
@@ -164,14 +168,14 @@ export default function UploadTemplateModal({ onClose, onSuccess }) {
           {/* 🔥 CROP AREA */}
           {preview && (
             <>
-              <div className="relative w-full aspect-video bg-black rounded-lg overflow-hidden">
+              <div className="relative w-full h-56 bg-black rounded-lg overflow-hidden">
                 <Cropper
                   image={preview}
                   crop={crop}
                   zoom={zoom}
                   rotation={rotation}
                   aspect={16 / 9}
-                  objectFit="cover" // 🔥 penting
+                  objectFit="cover"
                   onCropChange={setCrop}
                   onZoomChange={setZoom}
                   onRotationChange={setRotation}
@@ -179,7 +183,7 @@ export default function UploadTemplateModal({ onClose, onSuccess }) {
                 />
               </div>
 
-              {/* 🔥 CONTROLS */}
+              {/* CONTROLS */}
               <div className="space-y-3">
 
                 {/* ZOOM */}
@@ -218,19 +222,15 @@ export default function UploadTemplateModal({ onClose, onSuccess }) {
 
         {/* ACTION */}
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 text-white/60 hover:text-white"
-          >
+          <button onClick={onClose} className="text-white/60">
             Cancel
           </button>
 
           <button
-            onClick={handleSubmit}
-            disabled={loading}
-            className="px-5 py-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500"
+            onClick={handleUpdate}
+            className="bg-purple-500 px-4 py-2 rounded-lg"
           >
-            {loading ? "Saving..." : "Save"}
+            {loading ? "Saving..." : "Update"}
           </button>
         </div>
 

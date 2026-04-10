@@ -27,40 +27,27 @@ const Navbar = () => {
   const [user, setUser] = useState(null);
   const [openProfile, setOpenProfile] = useState(false);
 
-  // 🔥 FIX: gunakan Backendless (bukan localStorage)
+  // ✅ LOAD USER (ANTI ERROR)
   useEffect(() => {
     const loadUser = async () => {
       try {
         const currentUser = await Backendless.UserService.getCurrentUser();
         setUser(currentUser || null);
-      } catch {
+      } catch (error) {
+        console.log("User belum login / error", error);
         setUser(null);
       }
     };
 
     loadUser();
-
-    const handleStorage = () => {
-      loadUser();
-    };
-
-    window.addEventListener("storage", handleStorage);
-
-    return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  // 🔥 LOGOUT FIX FINAL
+  // ✅ LOGOUT AMAN
   const handleLogout = async () => {
     try {
       await Backendless.UserService.logout();
-
-      localStorage.removeItem("user"); // optional (biar clean)
-
-      window.dispatchEvent(new Event("storage"));
-
       setUser(null);
       setOpenProfile(false);
-
       navigate("/");
     } catch (err) {
       console.error(err);
@@ -82,10 +69,12 @@ const Navbar = () => {
       <div className="fixed top-0 left-0 w-full z-[9999] border-b border-white/10 bg-[#0b0b15]/90 backdrop-blur">
         <div className="relative flex items-center px-5 lg:px-10 py-4 text-white">
 
-          <Link to="/" className="font-bold text-lg z-10">
+          {/* LOGO */}
+          <Link to="./" className="font-bold text-lg z-10">
             Maystudio
           </Link>
 
+          {/* MENU DESKTOP */}
           <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 gap-8 text-sm">
             {navigation.map((item) =>
               item.url.startsWith("/") ? (
@@ -100,9 +89,11 @@ const Navbar = () => {
             )}
           </div>
 
+          {/* RIGHT SIDE */}
           <div className="ml-auto flex items-center gap-3 relative">
             {user ? (
               <>
+                {/* PROFILE CLICK */}
                 <div
                   onClick={() => setOpenProfile(!openProfile)}
                   className="flex items-center gap-2 cursor-pointer"
@@ -110,18 +101,20 @@ const Navbar = () => {
                   <img
                     src={
                       user?.profileImage ||
-                      `https://ui-avatars.com/api/?name=${user?.name || "User"}`
+                      `https://ui-avatars.com/api/?name=${user?.name || user?.email || "User"}`
                     }
                     alt="profile"
                     className="w-8 h-8 rounded-full"
                   />
                   <span className="hidden sm:block text-sm">
-                    {user?.name}
+                    {user?.name || user?.email || "User"}
                   </span>
                 </div>
 
-                {openProfile && (
+                {/* ✅ DROPDOWN (FIXED) */}
+                {openProfile && user && (
                   <div className="absolute right-0 top-12 w-44 bg-[#0f0f1a] border border-white/10 rounded-lg overflow-hidden">
+
                     <button
                       onClick={() => navigate("/profile")}
                       className="w-full px-4 py-2 text-left hover:bg-white/10"
@@ -134,6 +127,14 @@ const Navbar = () => {
                       className="w-full px-4 py-2 text-left hover:bg-white/10"
                     >
                       Settings
+                    </button>
+
+                    {/* ✅ DASHBOARD FIX */}
+                    <button
+                      onClick={() => navigate("/admin")}
+                      className="w-full px-4 py-2 text-left hover:bg-white/10"
+                    >
+                      Dashboard
                     </button>
 
                     <button
@@ -164,12 +165,14 @@ const Navbar = () => {
             )}
           </div>
 
+          {/* MOBILE BUTTON */}
           <Button className="ml-3 lg:hidden" onClick={toggleNavigation}>
             <MenuSvg openNavigation={openNavigation} />
           </Button>
         </div>
       </div>
 
+      {/* MOBILE MENU */}
       <AnimatePresence>
         {openNavigation && (
           <motion.div
@@ -181,21 +184,11 @@ const Navbar = () => {
           >
             {navigation.map((item) =>
               item.url.startsWith("/") ? (
-                <Link
-                  key={item.id}
-                  to={item.url}
-                  onClick={() => setOpenNavigation(false)}
-                  className="text-xl"
-                >
+                <Link key={item.id} to={item.url} className="text-xl">
                   {item.title}
                 </Link>
               ) : (
-                <a
-                  key={item.id}
-                  href={item.url}
-                  onClick={() => setOpenNavigation(false)}
-                  className="text-xl"
-                >
+                <a key={item.id} href={item.url} className="text-xl">
                   {item.title}
                 </a>
               )
@@ -206,23 +199,16 @@ const Navbar = () => {
             {user ? (
               <div className="flex flex-col items-center gap-4">
                 <img
-                  src={`https://ui-avatars.com/api/?name=${user?.name || "User"}`}
-                  alt="profile"
+                  src={`https://ui-avatars.com/api/?name=${user?.name || user?.email || "User"}`}
                   className="w-16 h-16 rounded-full"
                 />
-                <p>{user?.name}</p>
+                <p>{user?.name || user?.email}</p>
 
-                <button onClick={() => navigate("/profile")}>
-                  Profile
-                </button>
-                <button onClick={() => navigate("/settings")}>
-                  Settings
-                </button>
+                <button onClick={() => navigate("/profile")}>Profile</button>
+                <button onClick={() => navigate("/settings")}>Settings</button>
+                <button onClick={() => navigate("/admin")}>Dashboard</button>
 
-                <button
-                  onClick={handleLogout}
-                  className="text-red-400"
-                >
+                <button onClick={handleLogout} className="text-red-400">
                   Logout
                 </button>
               </div>
@@ -240,6 +226,7 @@ const Navbar = () => {
         )}
       </AnimatePresence>
 
+      {/* MODAL */}
       <AuthModal
         isOpen={modalType !== null}
         type={modalType}

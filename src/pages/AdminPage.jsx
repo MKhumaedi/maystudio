@@ -1,42 +1,104 @@
 import { useEffect, useState } from "react";
 import Backendless from "../lib/backendless";
 
+import Sidebar from "../components/Admin/Sidebar";
+import AdminHeader from "../components/Admin/AdminHeader";
+import Dashboard from "../components/Admin/Dashboard";
+import TemplatesPage from "../components/Admin/TemplatesPage";
+import UsersPage from "../components/Admin/UsersPage";
+
 export default function AdminPage() {
-  const [loading, setLoading] = useState(true);
-  const [allowed, setAllowed] = useState(false);
+  const [active, setActive] = useState("templates");
+
+  const [users, setUsers] = useState([]);
+  const [templates, setTemplates] = useState([]);
+
+  // 🔥 LOAD TEMPLATE (FIX)
+  const loadTemplates = async () => {
+    try {
+      const data = await Backendless.Data.of("Templates").find();
+
+      console.log("Templates:", data); // DEBUG
+
+      setTemplates(data || []);
+    } catch (err) {
+      console.error("Load template error:", err);
+    }
+  };
+
+  // 🔥 LOAD USERS
+  const loadUsers = async () => {
+    try {
+      const data = await Backendless.Data.of("Users").find();
+      setUsers(data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
-    const checkRole = async () => {
-      try {
-        const user = await Backendless.UserService.getCurrentUser();
-
-        if (user && user.role === "admin") {
-          setAllowed(true);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkRole();
+    loadTemplates();
+    loadUsers();
   }, []);
 
-  if (loading)
-    return <div className="text-white p-10">Loading...</div>;
+  // 🔥 DELETE TEMPLATE
+  const deleteTemplate = async (id) => {
+    try {
+      await Backendless.Data.of("Templates").remove({ objectId: id });
 
-  if (!allowed)
-    return (
-      <div className="text-white p-10">
-        Akses ditolak ❌ (Admin only)
-      </div>
-    );
+      loadTemplates(); // reload data
+
+      window.dispatchEvent(new Event("templateUpdated"));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // 🔥 DELETE USER
+  const deleteUser = async (id) => {
+    await Backendless.Data.of("Users").remove({ objectId: id });
+    loadUsers();
+  };
+
+  // 🔥 CHANGE ROLE
+  const changeRole = async (user) => {
+    const newRole = user.role === "admin" ? "user" : "admin";
+
+    await Backendless.Data.of("Users").save({
+      ...user,
+      role: newRole,
+    });
+
+    loadUsers();
+  };
 
   return (
-    <div className="text-white p-10">
-      <h1 className="text-3xl mb-4">Admin Dashboard 🔥</h1>
-      <p>Selamat datang, admin MayStudio 🚀</p>
+    <div className="flex bg-[#0b0b15] min-h-screen text-white">
+      <Sidebar active={active} setActive={setActive} />
+
+      <main className="flex-1 p-6">
+        <AdminHeader />
+
+        {active === "dashboard" && (
+          <Dashboard users={users} templates={templates} />
+        )}
+
+        {active === "templates" && (
+          <TemplatesPage
+            templates={templates}
+            deleteTemplate={deleteTemplate}
+            reloadTemplates={loadTemplates}
+          />
+        )}
+
+        {active === "users" && (
+          <UsersPage
+            users={users}
+            deleteUser={deleteUser}
+            changeRole={changeRole}
+          />
+        )}
+      </main>
     </div>
   );
 }
